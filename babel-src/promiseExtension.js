@@ -1,32 +1,70 @@
 'use strict';
 
-const _ = require('lodash');
-
-const defaultOptions = {
+Promise.auto = (resolve, reject) => {
+    return (err, result) => err ? reject(err) : resolve(result);
 };
 
-module.exports = new_();
-
-function new_(mainOptions) {
-    mainOptions = _.clone(mainOptions || {});
-    _.defaultsDeep(mainOptions, defaultOptions);
-    return _.assign(new_.bind(), {
-        todoMethod: todoMethod,
-    });
-
-    function todoMethod(options) {
-        options = _.clone(options || {});
-        _.defaultsDeep(options, mainOptions);
-        requireOptions(options, [
-        ]);
-        return Promise.resolve();
+Promise.use = (argument, thenCallback, catchCallback) => {
+    const p = Promise.resolve(argument);
+    if (thenCallback) {
+        p.then(thenCallback);
     }
+    if (catchCallback) {
+        p.catch(catchCallback);
+    }
+    return p;
+};
+
+Promise.prototype.thenEachSeries = function(iterator, catchCallback) {
+    const promise = this.then(obj => {
+        return new Promise((resolve, reject) => {
+            obj = obj || [];
+            let nextKey = _keyIterator(obj);
+            let key = nextKey();
+            function iterate() {
+                if (key === null) {
+                    return resolve();
+                }
+                Promise.resolve(iterator(obj[key])).then(() => {
+                    key = nextKey();
+                    iterate();
+                })
+                .catch(reject);
+            }
+            iterate();
+        });
+    });
+    if (catchCallback) {
+        promise.catch(catchCallback);
+    }
+    return promise;
+};
+
+function _isArrayLike(arr) {
+    return Array.isArray(arr) || (
+        // has a positive integer length property
+        typeof arr.length === 'number' &&
+        arr.length >= 0 &&
+        arr.length % 1 === 0
+    );
 }
 
-function requireOptions(providedOptions, requiredOptionNames) {
-    requiredOptionNames.forEach(function(optionName) {
-        if (typeof providedOptions[optionName] === 'undefined') {
-            throw new Error('missing option: ' + optionName);
-        }
-    });
+function _keyIterator(coll) {
+    let i = -1;
+    let len;
+    let keys;
+    if (_isArrayLike(coll)) {
+        len = coll.length;
+        return function next() {
+            i++;
+            return i < len ? i : null;
+        };
+    } else {
+        keys = Object.keys(coll);
+        len = keys.length;
+        return function next() {
+            i++;
+            return i < len ? keys[i] : null;
+        };
+    }
 }

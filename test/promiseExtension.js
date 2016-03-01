@@ -1,20 +1,20 @@
 'use strict';
 
-var assert = require('assert');
-var _ = require('lodash');
-var promiseExtensionModule = require('../src/built/promiseExtension');
-var promiseExtension = promiseExtensionModule({
-});
+const assert = require('assert');
+require('../src/built/promiseExtension');
 
 describe('module promiseExtension', function() {
-  describe('managing instances', function() {
-    it('module should be a default instance', function() {
-      assert.strictEqual(typeof promiseExtensionModule.todoMethod, 'function');
+    describe('thenEachSeries', function(done) {
+        it('should iterate through all elements and succeed when there is no error', function(done) {
+            let sum = 0;
+            Promise.resolve([2, 4, 6])
+            .thenEachSeries(n => sum += n)
+            .then(() => {
+                if (sum !== 12) {
+                    throw new Error('incorrect sum');
+                }
+                done();
+            }).catch(done);
+        });
     });
-    it('module can create a new instance', function() {
-      assert.strictEqual(typeof promiseExtensionModule, 'function');
-      assert.strictEqual(typeof promiseExtension, 'function');
-      assert.strictEqual(typeof promiseExtension.todoMethod, 'function');
-    });
-  });
 });

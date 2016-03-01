@@ -5,20 +5,17 @@
     "type": "git",
     "url": "https://github.com/rosedo/npm-promise-extension.git"
   },
-  "version": "0.0.1",
-  "description": "TODO description",
+  "version": "1.2.5",
+  "description": "Adds class functions and methods to the Promise class",
   "scripts": {
     "prepublish": "bin/prepublish",
     "test": "bin/build && bin/test && bin/lint"
   },
   "author": "Dominic Rose",
   "license": "ISC",
-  "dependencies": {
-    "lodash": ">= 4.5.1",
-  },
+  "dependencies": {},
   "devDependencies": {
     "babel-cli": ">= 6.5.1",
-    "babel-eslint": "^5.0.0",
     "babel-preset-es2015": ">= 6.5.0",
     "eslint": ">= 2.2.0",
     "mocha": ">= 2.4.5"
