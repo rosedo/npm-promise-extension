@@ -4,6 +4,14 @@ Promise.auto = (resolve, reject) => {
     return (err, result) => err ? reject(err) : resolve(result);
 };
 
+Promise.promisify = toPromisify => function() {
+    const args = Array.prototype.slice.call(arguments);
+    return new Promise((resolve, reject) => {
+        args.push(Promise.auto(resolve, reject));
+        toPromisify.apply(this, args);
+    });
+};
+
 Promise.use = (argument, thenCallback, catchCallback) => {
     const p = Promise.resolve(argument);
     if (thenCallback) {
@@ -16,24 +24,24 @@ Promise.use = (argument, thenCallback, catchCallback) => {
 };
 
 Promise.prototype.thenEachSeries = function(iterator, catchCallback) {
-    const promise = this.then(obj => {
-        return new Promise((resolve, reject) => {
-            obj = obj || [];
-            let nextKey = _keyIterator(obj);
-            let key = nextKey();
-            function iterate() {
-                if (key === null) {
-                    return resolve();
-                }
-                Promise.resolve(iterator(obj[key])).then(() => {
-                    key = nextKey();
-                    iterate();
-                })
-                .catch(reject);
+    const promise = this
+    .then(obj => new Promise((resolve, reject) => {
+        obj = obj || [];
+        let nextKey = _keyIterator(obj);
+        let key = nextKey();
+        function iterate() {
+            if (key === null) {
+                return resolve();
             }
-            iterate();
-        });
-    });
+            Promise.resolve(iterator(obj[key]))
+            .then(() => {
+                key = nextKey();
+                iterate();
+            })
+            .catch(reject);
+        }
+        iterate();
+    }));
     if (catchCallback) {
         promise.catch(catchCallback);
     }
